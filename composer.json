@@ -1,0 +1,15 @@
+{
+    "name": "vendimia/object-manager",
+    "description": "Dependency injector and object storage",
+    "keywords": ["di", "dependency", "injector", "object", "storage"],
+    "version": "0.1",
+    "license": "GPL-3",    
+    "require": {
+        "php": ">=8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Vendimia\\ObjectManager\\": "src"
+        }
+    }
+}
