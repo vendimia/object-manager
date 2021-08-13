@@ -23,6 +23,14 @@ class ObjectManager
     private $storage = [];
 
     /** 
+     * Save ourself in the object storage.
+     */
+    public function __construct()
+    {
+        $this->save($this);
+    }
+
+    /** 
      * Returns whether an array has only named keys
      */
     private function hasOnlyStringKeys(array $array): bool
