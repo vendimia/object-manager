@@ -171,4 +171,19 @@ final class ObjectManagerTest extends TestCase
 
         $this->assertEquals(30, $sum);
     }
+
+    /**
+     * @depends testCreateManager
+     */
+    public function testUnionArgumentsShouldBeIgnored(
+        ObjectManager $object
+    )
+    {
+        $object->call(function(int|string|null $value) {
+
+        }, value: 10);
+
+        $this->expectNotToPerformAssertions();        
+    }
+
 }

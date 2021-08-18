@@ -7,6 +7,7 @@ use ReflectionObject;
 use ReflectionFunction;
 use ReflectionException;
 use ReflectionAttribute;
+use ReflectionNamedType;
 use InvalidArgumentException;
 
 /**
@@ -49,8 +50,10 @@ class ObjectManager
     private function processParameters(array $params, array $args): array
     {
         foreach ($params as $p) {
-            // Solo inyectamos argumentos que tengan tipo y no sea builtin
-            if ($p->getType()?->isBuiltin() === false) {
+            // Solo inyectamos argumentos que no sean union, que tengan tipo 
+            // y no sea builtin.
+            if ($p->getType() instanceof ReflectionNamedType 
+                && $p->getType()?->isBuiltin() === false) {
                 $args[$p->getName()] = $this->get($p->getType()->getName());
             }
 
