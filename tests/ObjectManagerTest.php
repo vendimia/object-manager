@@ -2,8 +2,7 @@
 use PHPUnit\Framework\TestCase;
 use Vendimia\ObjectManager\ObjectManager;
 
-require __DIR__ . '/../src/ObjectManager.php';
-require __DIR__ . '/../src/AttributeParameterAbstract.php';
+require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/TestClassDefinitions.php';
 
 final class ObjectManagerTest extends TestCase
@@ -17,7 +16,7 @@ final class ObjectManagerTest extends TestCase
         return $manager;
     }
 
-    /** 
+    /**
      * @depends testCreateManager
      */
     public function testInstantiateNewSimpleObject(ObjectManager $object): object
@@ -29,27 +28,28 @@ final class ObjectManagerTest extends TestCase
         return $new;
     }
 
-    /** 
+    /**
      * @depends testCreateManager
      */
     public function testInstantiateAndSaveSimpleObject(ObjectManager $object): object
     {
-        $new = $object->get(Simple::class);
+        $new = $object->build(Simple::class);
 
         $this->assertInstanceOf(Simple::class, $new);
 
         return $new;
     }
 
-    /** 
-     * @depends testInstantiateNewSimpleObject
-     * @depends testInstantiateAndSaveSimpleObject
+    /**
+     * @depends testCreateManager
      */
     public function testNewAndGetShouldNotReturnSameObject(
-        $new, 
-        $get
+        ObjectManager $object
     )
     {
+        $new = $object->new(Simple::class);
+        $get = $object->get(Simple::class);
+
         $this->assertNotSame($new, $get);
     }
 
@@ -183,7 +183,7 @@ final class ObjectManagerTest extends TestCase
 
         }, value: 10);
 
-        $this->expectNotToPerformAssertions();        
+        $this->expectNotToPerformAssertions();
     }
 
 }
