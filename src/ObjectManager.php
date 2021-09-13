@@ -9,13 +9,14 @@ use ReflectionException;
 use ReflectionAttribute;
 use ReflectionNamedType;
 use InvalidArgumentException;
+use Psr\Container\ContainerInterface;
 
 /**
  * Dependency injector and object storage.
  *
  * @author Oliver Etchebarne <yo@drmad.org>
  */
-class ObjectManager
+class ObjectManager implements ContainerInterface
 {
     /** Class aliases */
     private $aliases = [];
@@ -23,7 +24,7 @@ class ObjectManager
     /** Object storage */
     private $storage = [];
 
-    /** 
+    /**
      * Save ourself in the object storage.
      */
     public function __construct()
@@ -31,33 +32,33 @@ class ObjectManager
         $this->save($this);
     }
 
-    /** 
-     * Returns whether an array has only named keys
+    /**
+     * Returns whether an array has only named keys.
      */
     private function hasOnlyStringKeys(array $array): bool
     {
         return count(array_filter(array_keys($array), 'is_numeric')) == 0;
     }
 
-    /** 
+    /**
      * Process an array of ReflectionParameters to inject objects as needed.
-     * 
+     *
      * @param array $params Array of ReflectionParameters.
      * @param array $args Original arguments array.
-     * @return array Argument array with new objects injected.
+     * @return array Arguments array with new objects injected.
      * @author Oliver Etchebarne <yo@drmad.org>
      */
     private function processParameters(array $params, array $args): array
     {
         foreach ($params as $p) {
-            // Solo inyectamos argumentos que no sean union, que tengan tipo 
+            // Solo inyectamos argumentos que no sean union, que tengan tipo
             // y no sea builtin.
-            if ($p->getType() instanceof ReflectionNamedType 
+            if ($p->getType() instanceof ReflectionNamedType
                 && $p->getType()?->isBuiltin() === false) {
                 $args[$p->getName()] = $this->get($p->getType()->getName());
             }
 
-            // Si tiene atributos tipo AttributeParameterAbstract, los 
+            // Si tiene atributos tipo AttributeParameterAbstract, los
             // ejecutamos.
             $attrs = $p->getAttributes(
                 AttributeParameterAbstract::class,
@@ -77,30 +78,30 @@ class ObjectManager
     /**
      * Instances a new object.
      *
-     * @param string $class_name Class name or alias to instantiate.
+     * @param string $identifier Class name or alias to instantiate.
      * @param mixed $args Named arguments for the class constructor.
      * @return object Instantated object.
      * @author Oliver Etchebarne <yo@drmad.org>
      */
-    public function new(string $class_name, ...$args): object
+    public function new(string $identifier, ...$args): object
     {
-        if (key_exists($class_name, $this->aliases)) {
-            $class_name = $this->aliases[$class_name];
+        if (key_exists($identifier, $this->aliases)) {
+            $identifier = $this->aliases[$identifier];
         }
 
         if ($args && !$this->hasOnlyStringKeys($args)) {
             throw new InvalidArgumentException("Class constructor arguments must be named only.");
         }
 
-        if (!class_exists($class_name)) {
-            throw new InvalidArgumentException("Class or binding '{$class_name}' doesn't exists.");
+        if (!class_exists($identifier)) {
+            throw new InvalidArgumentException("Class or binding '{$identifier}' doesn't exists.");
         }
 
-        $rc = new ReflectionClass($class_name);
+        $rc = new ReflectionClass($identifier);
 
         if (!$rc->hasMethod('__construct')) {
             // No hacemos nada
-            return new $class_name;
+            return new $identifier;
         }
 
         $args = $this->processParameters(
@@ -108,11 +109,11 @@ class ObjectManager
             $args,
         );
 
-        return new $class_name(...$args);
+        return new $identifier(...$args);
     }
 
     /**
-     * Executes a Closure injecting dependencies.
+     * Calls Closure injecting dependencies.
      */
     public function call(Closure $closure, ...$args)
     {
@@ -126,13 +127,16 @@ class ObjectManager
                 $rf->getParameters(),
                 $args,
             );
-        } catch (ReflectionException $e) {
+        } catch (ReflectionException) {
             // Nada...
         }
 
         return $rf->invokeArgs($args);
     }
 
+    /**
+     * Calls a method from an object, injecting dependencies.
+     */
     public function callMethod($object, $method, ...$args)
     {
         if ($args && !$this->hasOnlyStringKeys($args)) {
@@ -161,9 +165,18 @@ class ObjectManager
         $this->aliases[$alias] = $class;
     }
 
+
+    /**
+     * Builds and save a new object
+     */
+    public function build($identifier, ...$args)
+    {
+        return $this->save($this->new($identifier, ...$args), $identifier);
+    }
+
     /**
      * Saves an object into the storage
-     * 
+     *
      * @author Oliver Etchebarne <yo@drmad.org>
      */
     public function save($object, $name = null): object
@@ -178,16 +191,29 @@ class ObjectManager
     }
 
     /**
-     * Returns an object from the storage, builds it if doesn't exists
-     * 
+     * Returns an object from the storage, builds it if doesn't exists.
+     *
      * @author Oliver Etchebarne <yo@drmad.org>
      */
-    public function get(string $class_name, ...$args): object
+    public function get(string $identifier, ...$args): object
     {
-        if (key_exists($class_name, $this->storage)) {
-            return $this->storage[$class_name];
+        if (key_exists($identifier, $this->storage)) {
+            return $this->storage[$identifier];
         } else {
-            return $this->save($this->new($class_name, ...$args));
+            return $this->new($identifier, ...$args);
         }
+    }
+
+    /**
+     * Returns if an object can be instantiated
+     */
+    public function has(string $identifier): bool
+    {
+        if (key_exists($identifier, $this->storage) ||
+            class_exists($identifier)) {
+            return true;
+        }
+
+        return false;
     }
 }
