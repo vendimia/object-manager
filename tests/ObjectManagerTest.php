@@ -157,6 +157,21 @@ final class ObjectManagerTest extends TestCase
     /**
      * @depends testCreateManager
      */
+    public function testInjectAttributeParameterWithArguments(
+        ObjectManager $object
+    )
+    {
+        $YesPapa = $object->call(function(#[Double(name: 'Jhonny')] $Winner){
+            return $Winner;
+        });
+
+        $this->assertEquals('JhonnyJhonny', $YesPapa);
+    }
+
+
+    /**
+     * @depends testCreateManager
+     */
     public function testUseInjectionWithArgumentsInFunction(
         ObjectManager $object
     )

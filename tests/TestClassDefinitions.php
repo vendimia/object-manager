@@ -13,14 +13,14 @@ interface PersonInterface
 {
 }
 
-interface CarInterface 
+interface CarInterface
 {
     public function __construct(PersonInterface $chauffeur);
 }
 
 class Car implements CarInterface
 {
-    public function __construct(private PersonInterface $chauffeur) 
+    public function __construct(private PersonInterface $chauffeur)
     {
     }
 
@@ -46,16 +46,24 @@ class Alice implements PersonInterface
 {
 }
 
-#[Attribute]
 class Double extends AttributeParameterAbstract
 {
+    public function __construct(
+        string $name = null,
+    )
+    {
+        if (!is_null($name)) {
+            $this->name = $name;
+        }
+    }
+
     public function getValue()
     {
         return $this->name . $this->name;
     }
 }
 
-class WakaWaka 
+class WakaWaka
 {
     public function __construct(#[Double] private $Eh)
     {
