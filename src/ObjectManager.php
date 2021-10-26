@@ -66,7 +66,7 @@ class ObjectManager implements ContainerInterface
             );
             foreach($attrs as $ra) {
                 $attr = $this->new($ra->getName(), ...$ra->getArguments());
-                $attr->setName($p->getName());
+                $attr->setDefaultName($p->getName());
 
                 $args[$p->getName()] = $attr->getValue();
             }
@@ -137,7 +137,7 @@ class ObjectManager implements ContainerInterface
     /**
      * Calls a method from an object, injecting dependencies.
      */
-    public function callMethod($object, $method, ...$args)
+    public function callMethod(object $object, $method, ...$args)
     {
         if ($args && !$this->hasOnlyStringKeys($args)) {
             throw new InvalidArgumentException("Arguments must be named only.");
@@ -156,6 +156,30 @@ class ObjectManager implements ContainerInterface
 
         return $rm->invokeArgs($object, $args);
     }
+
+    /**
+     * Calls a static method from a class, injecting dependencies.
+     */
+    public function callStaticMethod(string $class, $method, ...$args)
+    {
+        if ($args && !$this->hasOnlyStringKeys($args)) {
+            throw new InvalidArgumentException("Arguments must be named only.");
+        }
+
+        $rc = new ReflectionClass($class);
+        $rm = $rc->getMethod($method);
+        try {
+            $args = $this->processParameters(
+                $rm->getParameters(),
+                $args,
+            );
+        } catch (ReflectionException $e) {
+            // Nada...
+        }
+
+        return $rm->invokeArgs(null, $args);
+    }
+
 
     /**
      * Binds a interface or an alias to a class.

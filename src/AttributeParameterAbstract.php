@@ -2,21 +2,24 @@
 namespace Vendimia\ObjectManager;
 
 /**
- * Attributes used to generate a parameter value
+ * PHP Attributes used to generate a parameter value
  */
 abstract class AttributeParameterAbstract
 {
-    protected $name;
-    
+    protected $name = null;
+
     /**
-     * Sets the parameter name affected by this attribute
+     * Sets the parameter name affected by this attribute, only if it is null.
      */
-    public function setName($name) {
-        $this->name = $name;
+    public function setDefaultName($name) {
+        if (is_null($this->name)) {
+            $this->name = $name;
+        }
     }
 
     /**
-     * Returns the value used as parameter in a function or method call.
+     * Returns the value used as argument.
      */
     abstract public function getValue();
+
 }
