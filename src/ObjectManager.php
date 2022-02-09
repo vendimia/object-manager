@@ -24,12 +24,31 @@ class ObjectManager implements ContainerInterface
     /** Object storage */
     private $storage = [];
 
+    /** Instance of this class for static access */
+    static private ?self $self = null;
+
     /**
      * Save ourself in the object storage.
      */
     public function __construct()
     {
         $this->save($this);
+        self::$self = $this;
+    }
+
+    /**
+     * Statically retrieve a instance of the object manager.
+     *
+     * If there is one already created, this method returns it. Otherwise
+     * creates a new instance
+     */
+    public static function retrieve()
+    {
+        if (self::$self) {
+            return self::$self;
+        }
+
+        return new self;
     }
 
     /**
@@ -153,7 +172,6 @@ class ObjectManager implements ContainerInterface
         } catch (ReflectionException $e) {
             // Nada...
         }
-
         return $rm->invokeArgs($object, $args);
     }
 
