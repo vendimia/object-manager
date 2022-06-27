@@ -8,7 +8,7 @@ use ReflectionFunction;
 use ReflectionException;
 use ReflectionAttribute;
 use ReflectionNamedType;
-use InvalidArgumentException;
+use LogicException;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -109,11 +109,11 @@ class ObjectManager implements ContainerInterface
         }
 
         if ($args && !$this->hasOnlyStringKeys($args)) {
-            throw new InvalidArgumentException("Class constructor arguments must be named only.");
+            throw new LogicException("Class constructor arguments must be named only");
         }
 
         if (!class_exists($identifier)) {
-            throw new InvalidArgumentException("Class or binding '{$identifier}' doesn't exists.");
+            throw new LogicException("Class or binding '{$identifier}' doesn't exists");
         }
 
         $rc = new ReflectionClass($identifier);
@@ -137,7 +137,7 @@ class ObjectManager implements ContainerInterface
     public function call(Closure $closure, ...$args)
     {
         if ($args && !$this->hasOnlyStringKeys($args)) {
-            throw new InvalidArgumentException("Arguments must be named only.");
+            throw new LogicException("Arguments must be named only");
         }
 
         $rf = new ReflectionFunction($closure);
@@ -159,7 +159,7 @@ class ObjectManager implements ContainerInterface
     public function callMethod(object $object, $method, ...$args)
     {
         if ($args && !$this->hasOnlyStringKeys($args)) {
-            throw new InvalidArgumentException("Arguments must be named only.");
+            throw new LogicException("Arguments must be named only");
         }
 
         $rc = new ReflectionObject($object);
@@ -181,7 +181,7 @@ class ObjectManager implements ContainerInterface
     public function callStaticMethod(string $class, $method, ...$args)
     {
         if ($args && !$this->hasOnlyStringKeys($args)) {
-            throw new InvalidArgumentException("Arguments must be named only.");
+            throw new LogicException("Arguments must be named only");
         }
 
         $rc = new ReflectionClass($class);
@@ -198,7 +198,6 @@ class ObjectManager implements ContainerInterface
         return $rm->invokeArgs(null, $args);
     }
 
-
     /**
      * Binds a interface or an alias to a class.
      */
@@ -206,7 +205,6 @@ class ObjectManager implements ContainerInterface
     {
         $this->aliases[$alias] = $class;
     }
-
 
     /**
      * Builds and save a new object
