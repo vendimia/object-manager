@@ -70,10 +70,11 @@ class ObjectManager implements ContainerInterface
     private function processParameters(array $params, array $args): array
     {
         foreach ($params as $p) {
-            // Solo inyectamos argumentos que no sean union, que tengan tipo
-            // y no sea builtin.
+            // Solo inyectamos argumentos que no sean union, que tengan tipo,
+            // que no sea builtin, y que no estén definidos ya en $arg
             if ($p->getType() instanceof ReflectionNamedType
-                && $p->getType()?->isBuiltin() === false) {
+                && $p->getType()?->isBuiltin() === false
+                && !key_exists($p->getName(), $args)) {
                 $args[$p->getName()] = $this->get($p->getType()->getName());
             }
 
