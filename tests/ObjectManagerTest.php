@@ -89,13 +89,22 @@ final class ObjectManagerTest extends TestCase
     /**
      * @depends testCreateManager
      */
-    public function testInjectWithoutNeededBindings(ObjectManager $object)
+    public function testFailsOnMissingBindings(ObjectManager $object)
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(LogicException::class);
         $this->expectExceptionMessage('PersonInterface');
         $car = $object->new(Car::class);
     }
 
+    /**
+     * @depends testCreateManager
+     */
+    public function testShouldIgnoreBuildinTypes(ObjectManager $object)
+    {
+
+        $this->expectNotToPerformAssertions();
+        $car = $object->new(UsesBuildinTypes::class, integer_param: 1);
+    }
 
     /**
      * @depends testCreateManager
@@ -182,7 +191,7 @@ final class ObjectManagerTest extends TestCase
             $this->assertInstanceOf(Mazda::class, $car);
 
             return $first + $second;
-        }, first: 10,  second: 20);
+        }, first: 10, second: 20);
 
         $this->assertEquals(30, $sum);
     }
@@ -194,11 +203,23 @@ final class ObjectManagerTest extends TestCase
         ObjectManager $object
     )
     {
+        $this->expectNotToPerformAssertions();
+
         $object->call(function(int|string|null $value) {
 
         }, value: 10);
+    }
 
+    /**
+     * @depends testCreateManager
+     */
+    public function testMustNotFailOnOptionalMissingBinding(
+        ObjectManager $object
+    )
+    {
         $this->expectNotToPerformAssertions();
+
+        $object->new(OptionalMissingArgument::class);
     }
 
 }

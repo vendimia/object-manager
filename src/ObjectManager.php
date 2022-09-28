@@ -71,11 +71,21 @@ class ObjectManager implements ContainerInterface
     {
         foreach ($params as $p) {
             // Solo inyectamos argumentos que no sean union, que tengan tipo,
-            // que no sea builtin, y que no estén definidos ya en $arg
-            if ($p->getType() instanceof ReflectionNamedType
-                && $p->getType()?->isBuiltin() === false
+            // que no sean builtin, y que no existan anteriormente en $arg
+            $type = $p->getType();
+            if ($type instanceof ReflectionNamedType
+                && $type->isBuiltin() === false
                 && !key_exists($p->getName(), $args)) {
-                $args[$p->getName()] = $this->get($p->getType()->getName());
+
+                try {
+                    $args[$p->getName()] = $this->get($p->getType()->getName());
+                } catch (LogicException $e) {
+                    // Si falla la creación de la clase, y este parámetro no
+                    // tiene un valor por defecto, fallamos
+                    if(!$p->isOptional()) {
+                        throw $e;
+                    }
+                }
             }
 
             // Si tiene atributos tipo AttributeParameterAbstract, los

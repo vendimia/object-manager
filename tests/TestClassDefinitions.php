@@ -79,3 +79,18 @@ class WakaWaka
         return $Eh;
     }
 }
+
+class UsesBuildinTypes {
+    public function __construct(int $integer_param)
+    {
+
+    }
+}
+
+class OptionalMissingArgument
+{
+    public function __construct(Car $car, NonExistingInterface $papaya = null)
+    {
+
+    }
+}
