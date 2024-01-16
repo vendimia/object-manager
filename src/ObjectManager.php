@@ -83,7 +83,10 @@ class ObjectManager implements ContainerInterface
                     // Si falla la creación de la clase, y este parámetro no
                     // tiene un valor por defecto, fallamos
                     if(!$p->isOptional()) {
-                        throw $e;
+                        throw new LogicException(
+                            "Failed to get object for parameter '{$p->getName()}'",
+                            previous: $e
+                        );
                     }
                 }
             }
@@ -134,10 +137,17 @@ class ObjectManager implements ContainerInterface
             return new $identifier;
         }
 
-        $args = $this->processParameters(
-            $rc->getMethod('__construct')->getParameters(),
-            $args,
-        );
+        try {
+            $args = $this->processParameters(
+                $rc->getMethod('__construct')->getParameters(),
+                $args,
+            );
+        } catch (LogicException $e) {
+            throw new LogicException(
+                "Failed to instance new class or binding '{$identifier}'",
+                previous: $e
+            );
+        }
 
         return new $identifier(...$args);
     }
