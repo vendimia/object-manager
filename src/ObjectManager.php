@@ -84,7 +84,7 @@ class ObjectManager implements ContainerInterface
                     // tiene un valor por defecto, fallamos
                     if(!$p->isOptional()) {
                         throw new LogicException(
-                            "Failed to get object for parameter '{$p->getName()}'",
+                            "Failed to get object for parameter '{$p->getName()}' of class '{$p->getType()->getName()}",
                             previous: $e
                         );
                     }
