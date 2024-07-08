@@ -49,7 +49,7 @@ class Alice implements PersonInterface
 class Double extends AttributeParameterAbstract
 {
     public function __construct(
-        string $name = null,
+        ?string $name = null,
     )
     {
         if (!is_null($name)) {
@@ -89,7 +89,7 @@ class UsesBuildinTypes {
 
 class OptionalMissingArgument
 {
-    public function __construct(Car $car, NonExistingInterface $papaya = null)
+    public function __construct(Car $car, ?NonExistingInterface $papaya = null)
     {
 
     }
