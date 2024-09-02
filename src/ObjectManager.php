@@ -64,12 +64,25 @@ class ObjectManager implements ContainerInterface
      *
      * @param array $params Array of ReflectionParameters.
      * @param array $args Original arguments array.
+     * @param string|null $method_name Processed function or method name, just
+     *          for error reporting
      * @return array Arguments array with new objects injected.
      * @author Oliver Etchebarne <yo@drmad.org>
      */
-    private function processParameters(array $params, array $args): array
+    private function processParameters(
+        array $params,
+        array $args,
+        ?string $method_name = null
+    ): array
     {
+        // Usamos este array para determinar si $args tiene valores de
+        // parámetros que no existen
+        $used_args = array_flip(array_keys($args));
+
         foreach ($params as $p) {
+            // Removemos el nombre del parámetro de $used_args
+            unset($used_args[$p->getName()]);
+
             // Solo inyectamos argumentos que no sean union, que tengan tipo,
             // que no sean builtin, y que no existan anteriormente en $arg
             $type = $p->getType();
@@ -103,6 +116,12 @@ class ObjectManager implements ContainerInterface
 
                 $args[$p->getName()] = $attr->getValue();
             }
+        }
+
+        // Si queda algún valor en $used_args, fallamos, pues este argumento
+        // no tiene un parámetro
+        if ($used_args) {
+            throw new LogicException("Unknow named parameter(s) for {$method_name}: " . join(', ', array_flip($used_args)));
         }
 
         return $args;
@@ -141,6 +160,7 @@ class ObjectManager implements ContainerInterface
             $args = $this->processParameters(
                 $rc->getMethod('__construct')->getParameters(),
                 $args,
+                $identifier . '::__construct()',
             );
         } catch (LogicException $e) {
             throw new LogicException(
@@ -166,6 +186,7 @@ class ObjectManager implements ContainerInterface
             $args = $this->processParameters(
                 $rf->getParameters(),
                 $args,
+                $rf->getName() . '()',
             );
         } catch (ReflectionException) {
             // Nada...
@@ -189,6 +210,7 @@ class ObjectManager implements ContainerInterface
             $args = $this->processParameters(
                 $rm->getParameters(),
                 $args,
+                $rc->getName() . '->' . $rm->getName() . '()',
             );
         } catch (ReflectionException $e) {
             // Nada...
@@ -211,6 +233,7 @@ class ObjectManager implements ContainerInterface
             $args = $this->processParameters(
                 $rm->getParameters(),
                 $args,
+                $rc->getName() . '::' . $rm->getName(),
             );
         } catch (ReflectionException $e) {
             // Nada...
