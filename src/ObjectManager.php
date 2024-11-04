@@ -114,7 +114,9 @@ class ObjectManager implements ContainerInterface
                 $attr = $this->new($ra->getName(), ...$ra->getArguments());
                 $attr->setDefaultName($p->getName());
 
-                $args[$p->getName()] = $attr->getValue();
+                if ($attr->hasValue()) {
+                    $args[$p->getName()] = $attr->getValue();
+                }
             }
         }
 

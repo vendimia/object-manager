@@ -1,4 +1,5 @@
 <?php
+
 namespace Vendimia\ObjectManager;
 
 /**
@@ -18,8 +19,17 @@ abstract class AttributeParameterAbstract
     }
 
     /**
+     * Returns whether this parameters has a valid argument value.
+     *
+     * This should be extended in the child class
+     */
+    public function hasValue(): bool
+    {
+        return true;
+    }
+
+    /**
      * Returns the value used as argument.
      */
-    abstract public function getValue();
-
+    abstract public function getValue(): mixed;
 }
